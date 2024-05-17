@@ -50,20 +50,41 @@ const create = async function (req, res) {
 const show = async function (req, res) {
   // Only returns PUBLIC information of restaurants
   try {
-    const restaurant = await Restaurant.findByPk(req.params.restaurantId, {
-      attributes: { exclude: ['userId'] },
-      include: [{
-        model: Product,
-        as: 'products',
-        include: { model: ProductCategory, as: 'productCategory' }
-      },
-      {
-        model: RestaurantCategory,
-        as: 'restaurantCategory'
-      }],
-      order: [[{ model: Product, as: 'products' }, 'order', 'ASC']]
+    const restaurantAux = await Restaurant.findByPk(req.params.restaurantId)
+    let restaurant = null
+    if (restaurantAux.orderPrice === true) {
+      restaurant = await Restaurant.findByPk(req.params.restaurantId, {
+        attributes: { exclude: ['userId'] },
+        include: [{
+          model: Product,
+          as: 'products',
+          include: { model: ProductCategory, as: 'productCategory' }
+        },
+        {
+          model: RestaurantCategory,
+          as: 'restaurantCategory'
+        }],
+
+        order: [[{ model: Product, as: 'products' }, 'order', 'ASC']]
+      }
+      )
+    } else {
+      restaurant = await Restaurant.findByPk(req.params.restaurantId, {
+        attributes: { exclude: ['userId'] },
+        include: [{
+          model: Product,
+          as: 'products',
+          include: { model: ProductCategory, as: 'productCategory' }
+        },
+        {
+          model: RestaurantCategory,
+          as: 'restaurantCategory'
+        }],
+
+        order: [[{ model: Product, as: 'products' }, 'price', 'DESC']]
+      }
+      )
     }
-    )
     res.json(restaurant)
   } catch (err) {
     res.status(500).send(err)
@@ -95,12 +116,24 @@ const destroy = async function (req, res) {
   }
 }
 
+const setOrderPrice = async function (req, res) {
+  try {
+    const restaurant = await Restaurant.findByPk(req.params.restaurantId)
+    restaurant.orderPrice = restaurant.orderPrice ^ true
+    const updatedRestaurant = await restaurant.save()
+    res.json(updatedRestaurant)
+  } catch (err) {
+    res.status(500).send(err)
+  }
+}
+
 const RestaurantController = {
   index,
   indexOwner,
   create,
   show,
   update,
-  destroy
+  destroy,
+  setOrderPrice
 }
 export default RestaurantController

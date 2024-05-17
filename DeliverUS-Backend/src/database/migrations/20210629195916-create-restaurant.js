@@ -66,6 +66,11 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: new Date()
       },
+      orderPrice: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
       userId: {
         allowNull: false,
         type: Sequelize.INTEGER,
